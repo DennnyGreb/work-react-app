@@ -9,7 +9,6 @@ const TaskEditModalForm = ({ columns, activeTask, show, handleClose, setTriggerD
   const [taskDescription, setTaskDescription] = useState(activeTask.Description);
   const [taskWork, setTaskWork] = useState(activeTask.Work);
   const [taskState, setTaskState] = useState(activeTask.TaskStateId);
-  console.log(activeTask);
   const editTask = () => {
     axios.put('http://localhost:8080/update-task', {
       data: {

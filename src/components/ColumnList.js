@@ -34,7 +34,14 @@ const ColumnList = ({ columnList, activeProject, setTriggerDataLoad }) => {
     ? (
       <>
         {list.map(column => (
-          <Card key={column.IdTaskState} style={{ minWidth: '14rem', width: '14rem', marginRight: '20px', marginBottom: '20px' }}>
+          <Card 
+            key={column.IdTaskState} 
+            style={{
+              minWidth: '14rem',
+              width: '14rem',
+              marginRight: '20px',
+              marginBottom: '20px' 
+            }}>
             <Card.Body>
               <Card.Title>{column.TaskStateName}</Card.Title>
               { /* Column Tasks */}
@@ -67,7 +74,6 @@ const ColumnList = ({ columnList, activeProject, setTriggerDataLoad }) => {
               </Button>
               <Button style={{ width: '100%', fontSize: '14px', }} variant="danger" onClick={() => {
                 axios.delete('http://localhost:8080/delete-column', { params: { IdTaskState: column.IdTaskState } }).then((res => {
-                  console.log(res);
                   setTriggerDataLoad(true);
                 }));
               }}>

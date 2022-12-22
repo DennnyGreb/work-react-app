@@ -9,7 +9,6 @@ import {
 
 const ProjectSelection = ({ activeProject, userId, projects, setActiveProject, setTriggerDataLoad }) => {
   const [openProjectForm, setOpenProjectForm] = useState(false);
-  console.log(projects)
   return !activeProject && (
     <>
       <Row className="justify-content-md-left">

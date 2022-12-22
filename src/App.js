@@ -17,6 +17,7 @@ function App() {
   const [users, setUsers] = useState(null);
   const [activeUser, setActiveUser] = useState(JSON.parse(localStorage.getItem('activeUser')) || null);
   const [triggerDataLoad, setTriggerDataLoad] = useState(true);
+  const [triggerLoadUsers, setTriggerLoadUsers] = useState(true);
   const [projects, setProjects] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
   const [columns, setColumns] = useState([]);
@@ -24,17 +25,20 @@ function App() {
   const [timeoutId, setTimeoutId] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:8080/get-users').then((res) => {
-      setUsers(res.data);
-    });
-  }, []);
+    if (triggerLoadUsers) {
+      axios.get('http://localhost:8080/get-users').then((res) => {
+        setUsers(res.data);
+      });
+      setTriggerLoadUsers(false);
+    }
+  }, [triggerLoadUsers]);
 
   useEffect(() => {
     if (activeUser !== null && triggerDataLoad) {
       axios.get('http://localhost:8080/get-projects', { params: { userId: activeUser.IdUser } }).then((res) => {
         setProjects(res.data.projects);
-        setTriggerDataLoad(false);
       });
+      setTriggerDataLoad(false);
     }
   }, [activeUser, triggerDataLoad]);
 
@@ -68,7 +72,7 @@ function App() {
         {activeUser ? (
           <ProjectSelection activeProject={activeProject} userId={activeUser?.IdUser} projects={projects || []} setActiveProject={setActiveProject} setTriggerDataLoad={setTriggerDataLoad} />
         ) : (
-          <UserSelection setTriggerDataLoad={setTriggerDataLoad} users={users} setActiveUser={setActiveUser} />
+          <UserSelection setTriggerLoadUsers={setTriggerLoadUsers} setTriggerDataLoad={setTriggerDataLoad} users={users} setActiveUser={setActiveUser} />
         )}
         <Row className="justify-content-md-center">
           <Col xl="12" lg="12" md="12" style={{ marginBottom: '20px', paddingBottom: '20px', marginTop: '10px', borderBottom: '1px solid lightgray' }}>
