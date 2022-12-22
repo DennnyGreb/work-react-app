@@ -3,7 +3,7 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 
-function HeaderNavbar() {
+function HeaderNavbar({ resetToLogin, activeUser }) {
   return (
     <Navbar bg="light" expand="lg">
       <Container>
@@ -11,9 +11,8 @@ function HeaderNavbar() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="#home">Проект</Nav.Link>
-            <Nav.Link href="#link">Реєстрація</Nav.Link>
-            <Nav.Link href="#link">Увійти</Nav.Link>
+            <Nav.Link href="/">Проект</Nav.Link>
+            <Nav.Link onClick={resetToLogin} href="#">Увійти</Nav.Link>
             {/* <NavDropdown title="Dropdown" id="basic-nav-dropdown">
               <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
               <NavDropdown.Item href="#action/3.2">
@@ -27,6 +26,7 @@ function HeaderNavbar() {
             </NavDropdown> */}
           </Nav>
         </Navbar.Collapse>
+        <div><p style={{ padding: 8, margin: 0 }}>{activeUser?.Name || ''}</p></div>
       </Container>
     </Navbar>
   );

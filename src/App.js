@@ -1,100 +1,100 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import _ from 'lodash';
 import Container from 'react-bootstrap/Container';
-import Modal from 'react-bootstrap/Modal';
-import Card from 'react-bootstrap/Card';
-import Form from 'react-bootstrap/Form';
-import Badge from 'react-bootstrap/Badge';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
 import Navbar from './Navbar';
-import Button from 'react-bootstrap/Button';
+import UserSelection from './components/UserSelection';
+import ProjectSelection from './components/ProjectSelection';
+import ColumnForm from './components/ColumnForm';
+import ColumnList from './components/ColumnList';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 function App() {
-  const [openProjectForm, setOpenProjectForm] = useState(false);
-  const [columnList, setColumnList] = useState([]);
-  const [columnName, setColumnName] = useState('');
-  const [columnDescription, setColumnDescription] = useState('');
-  const [activeColumn, setActiveColumn] = useState(null);
-  const [taskName, setTaskName] = useState('');
-  const [taskDescription, setTaskDescription] = useState('');
-  const [taskWork, setTaskWork] = useState('');
-  const [projectName, setProjectName] = useState('');
-  const [projectDescription, setProjectDescription] = useState('');
-  const [project, setProject] = useState(null);
-  const [show, setShow] = useState(false);
+  const [users, setUsers] = useState(null);
+  const [activeUser, setActiveUser] = useState(JSON.parse(localStorage.getItem('activeUser')) || null);
+  const [triggerDataLoad, setTriggerDataLoad] = useState(true);
+  const [projects, setProjects] = useState(null);
+  const [activeProject, setActiveProject] = useState(null);
+  const [columns, setColumns] = useState([]);
+  const [search, setSearch] = useState('');
+  const [timeoutId, setTimeoutId] = useState(null);
 
-  const handleClose = () => {
-    setShow(false);
-    setActiveColumn(null);
-  };
-  const handleShow = () => setShow(true);
+  useEffect(() => {
+    axios.get('http://localhost:8080/get-users').then((res) => {
+      setUsers(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (activeUser !== null && triggerDataLoad) {
+      axios.get('http://localhost:8080/get-projects', { params: { userId: activeUser.IdUser } }).then((res) => {
+        setProjects(res.data.projects);
+        setTriggerDataLoad(false);
+      });
+    }
+  }, [activeUser, triggerDataLoad]);
+
+  useEffect(() => {
+    if (activeProject) {
+      axios.get('http://localhost:8080/get-columns', { 
+        params: { 
+          projectId: activeProject.IdProject, 
+          search,
+      } }).then((res) => {
+        setColumns(res.data.columns);
+        setTriggerDataLoad(false);
+      }).catch(() => {
+        setTriggerDataLoad(false);
+      });
+    }
+  }, [activeProject, triggerDataLoad]);
+
+  const resetToLogin = () => {
+    setProjects(null);
+    setColumns([]);
+    setActiveProject(null);
+    setActiveUser(null);
+    localStorage.setItem('activeUser', null);
+  }
 
   return (
     <div className="App">
-      <Navbar />
+      <Navbar resetToLogin={resetToLogin} activeUser={activeUser} />
       <Container>
-        { openProjectForm ? null : (
-          <Row>
-            <Col>
-              <Button style={{ marginTop: '30px' }} onClick={() => setOpenProjectForm(true)}>Додати проект</Button>
-            </Col>
-          </Row>
+        {activeUser ? (
+          <ProjectSelection activeProject={activeProject} userId={activeUser?.IdUser} projects={projects || []} setActiveProject={setActiveProject} setTriggerDataLoad={setTriggerDataLoad} />
+        ) : (
+          <UserSelection setTriggerDataLoad={setTriggerDataLoad} users={users} setActiveUser={setActiveUser} />
         )}
         <Row className="justify-content-md-center">
-          <Col xl="4" lg="4" md="4" style={{ marginBottom: '30px', marginTop: '30px' }}>
-            { openProjectForm && !project ? (
-              <Form onSubmit={(event) => {
-                event.preventDefault();
-                setProject({
-                  name: projectName,
-                  description: projectDescription,
-                });
-              }}>
-                <Form.Group className="mb-3" controlId="projectName">
-                  <Form.Label>Назва проекту</Form.Label>
-                  <Form.Control value={projectName} onChange={(event) => setProjectName(event.target.value)} type="text" placeholder="Введіть назву проекту" />
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="projectDescription">
-                  <Form.Label>Опис проекту</Form.Label>
-                  <Form.Control value={projectDescription} onChange={(event) => setProjectDescription(event.target.value)} type="textarea" placeholder="Введіть опис проекту" />
-                </Form.Group>
-                <Button variant="primary" type="submit">
-                  Створити
-                </Button>
-              </Form>
-            ) : null }
-            { project ? (
-              <>
-                <h1 className="projectHeader">{project.name}</h1>
-                <p className="projectDescription">{project.description}</p>
-                <Form onSubmit={(event) => {
-                  event.preventDefault();
-                  setColumnList([...columnList, {
-                    name: columnName,
-                    description: columnDescription,
-                    tasks: [],
-                  }]);
-                  setColumnName('');
-                  setColumnDescription('');
-                }}>
-                  <Form.Group className="mb-3" controlId="columnName">
-                    <Form.Label>Назва колонки</Form.Label>
-                    <Form.Control value={columnName} onChange={(event) => setColumnName(event.target.value)} 
-                      type="text" placeholder="Введіть назву колонки" />
-                  </Form.Group>
-                  <Form.Group className="mb-3" controlId="columnDescription">
-                    <Form.Label>Опис</Form.Label>
-                    <Form.Control value={columnDescription} onChange={(event) => setColumnDescription(event.target.value)} 
-                      type="textarea" placeholder="Введіть опис колонки" />
-                  </Form.Group>
-                  <Button variant="primary" type="submit">
-                    Створити
-                  </Button>
-                </Form>
-              </>
-              ) : null
+          <Col xl="12" lg="12" md="12" style={{ marginBottom: '20px', paddingBottom: '20px', marginTop: '10px', borderBottom: '1px solid lightgray' }}>
+            <ColumnForm setTriggerDataLoad={setTriggerDataLoad} project={activeProject} />
+          </Col>
+        </Row>
+        <Row className="justify-content-md-center">
+          <Col xl="4" lg="4" md="4" style={{ marginBottom: '20px', paddingBottom: '20px', marginTop: '10px' }}>
+            {columns.length > 0 
+              ? (
+                <Form.Control
+                  value={search}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    if (timeoutId) {
+                      clearTimeout(timeoutId);
+                    }
+                    setTimeoutId(setTimeout(() => {
+                      setTriggerDataLoad(true);
+                    }, 800));
+                  }} 
+                  type="text"
+                  placeholder="Пошук"
+                />
+              ) 
+              : null
             }
           </Col>
         </Row>
@@ -102,87 +102,16 @@ function App() {
           <Col xl="12" lg="12" md="12" style={{
             flexDirection: 'row',
             display: 'flex',
+            flexWrap: 'wrap',
           }}>
-          {columnList.length > 0 ?
-              columnList.map(column => (
-                <Card style={{ width: '18rem', marginRight: '20px', marginBottom: '20px' }}>
-                  <Card.Body>
-                    <Card.Title>{column.name}</Card.Title>
-                    <Card.Text>
-                      {column.description}
-                    </Card.Text>
-                    { /* Column Tasks */}
-                    {column?.tasks?.map(task => {
-                      return (
-                        <Badge style={{ 
-                          display: 'block',
-                          fontSize: '16px',
-                          padding: '10px',
-                          marginBottom: '10px',
-                        }} bg="secondary">{task.name}</Badge>
-                      );
-                    })}
-                    <Button variant="primary" onClick={() => {
-                      handleShow();
-                      setActiveColumn(column.name);
-                    }}>
-                      Додати завдання
-                    </Button>
-                  </Card.Body>
-                </Card>
-              ))
-            : null}
+            <ColumnList
+              setTriggerDataLoad={setTriggerDataLoad}
+              columnList={columns}
+              activeProject={activeProject} 
+            />
           </Col>
         </Row>
       </Container>
-      <Modal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Додайте завдання</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={(event) => {
-            event.preventDefault();
-          }}>
-            <Form.Group className="mb-3" controlId="taskName">
-              <Form.Label>Назва завдання</Form.Label>
-              <Form.Control value={taskName} onChange={(event) => setTaskName(event.target.value)} 
-                type="text" placeholder="Введіть назву завдання" />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="taskDescription">
-              <Form.Label>Опис</Form.Label>
-              <Form.Control value={taskDescription} onChange={(event) => setTaskDescription(event.target.value)} 
-                type="textarea" placeholder="Введіть опис завдання" />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="taskWork">
-              <Form.Label>Тип роботи</Form.Label>
-              <Form.Control value={taskWork} onChange={(event) => setTaskWork(event.target.value)} 
-                type="textarea" placeholder="Введіть тип роботи" />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={() => {
-            const index = columnList.findIndex(item => item.name === activeColumn);
-            console.log(index);
-            let newColumnList = [...columnList];
-            newColumnList[index] = { ...newColumnList[index], tasks: [...newColumnList[index].tasks, {
-              name: taskName,
-              description: taskDescription,
-              work: taskWork,
-            }]};
-            setColumnList(newColumnList);
-            setTaskName('');
-            setTaskDescription('');
-            setTaskWork('');
-            handleClose();
-          }}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </div>
   );
 }
