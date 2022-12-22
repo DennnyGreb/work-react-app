@@ -29,7 +29,6 @@ const TaskEditModalForm = ({ columns, activeTask, show, handleClose, setTriggerD
     });
   };
 
-  console.log(columns);
 
   return (
     <Modal show={show} onHide={handleClose}>
