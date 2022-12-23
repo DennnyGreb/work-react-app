@@ -29,11 +29,10 @@ const TaskEditModalForm = ({ columns, activeTask, show, handleClose, setTriggerD
     });
   };
 
-
   return (
     <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>
-          <Modal.Title>Додайте завдання</Modal.Title>
+          <Modal.Title>Редагуйте завдання</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={(event) => {
